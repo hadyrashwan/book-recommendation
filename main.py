@@ -1,8 +1,14 @@
+from dotenv import load_dotenv
+import yaml
+from fastapi.openapi.utils import get_openapi
+
+
+load_dotenv()
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
-from . import crud, models, schemas
-from .database import SessionLocal, engine
+import crud, models, schemas
+from database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -51,3 +57,14 @@ def create_item_for_user(
 def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     items = crud.get_items(db, skip=skip, limit=limit)
     return items
+
+openapi_schema = get_openapi(
+    title="Book recommendations",
+    version="0.0.1",
+    description="This is a sample book recommendation app",
+    routes=app.routes,
+)
+
+# Write the specification to a YAML file
+with open("openapi.yaml", "w") as file:
+    yaml.dump(openapi_schema, file)
